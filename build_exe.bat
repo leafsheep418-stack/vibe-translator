@@ -2,7 +2,17 @@
 setlocal
 
 echo Building vibe-translator.exe...
-pyinstaller --onefile --windowed --name vibe-translator main.py
+python -m PyInstaller --onefile --windowed --name vibe-translator main.py
+
+if errorlevel 1 (
+    echo.
+    echo Build failed.
+    echo Please install build tools first:
+    echo pip install -r requirements-dev.txt
+    echo.
+    pause
+    exit /b 1
+)
 
 echo.
 echo Done.
