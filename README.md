@@ -2,15 +2,18 @@
 
 vibe-translator 是一个 AI 风格翻译器。
 
-V0.1 是一个 Windows 桌面后台小工具：用户先运行程序，然后在 Discord、浏览器、Word 或其他软件里选中英文文字，按 `F8`，程序会临时模拟 `Ctrl + C` 读取选中文字，调用 AI 翻译，并弹出一个小窗口显示中文翻译结果。
+V0.1 是一个 Windows 桌面后台小工具：用户先运行程序，然后在 Discord、浏览器、Word 或其他软件里选中文字，按 `F8`，程序会临时模拟 `Ctrl + C` 读取选中文字，调用 AI 翻译，并弹出一个小窗口显示翻译结果。
+
+当前翻译方向会根据输入语言自动决定：如果选中内容主要是英文，就翻译成中文；如果选中内容主要是中文，就翻译成对应风格的英文。
 
 这个项目会尽量保持简单清楚，适合新手学习和逐步扩展。
 
 ## V0.1 功能
 
 - 后台等待快捷键
-- 读取用户当前选中的英文文字
-- 按当前风格翻译成中文
+- 读取用户当前选中的文字
+- 英文内容翻译成中文
+- 中文内容翻译成对应风格的英文
 - 弹出小窗口显示翻译结果
 - 支持 OpenAI / ChatGPT API
 - 支持 DeepSeek API
@@ -98,12 +101,12 @@ python main.py
 
 ## 使用方式
 
-1. 在 Discord、浏览器、Word 或其他软件里，用鼠标选中一段英文。
+1. 在 Discord、浏览器、Word 或其他软件里，用鼠标选中一段英文或中文。
 2. 保持文字处于蓝底选中状态。
 3. 按 `F8`。
 4. 程序会临时模拟 `Ctrl + C`，读取选中文字。
 5. 程序调用 AI 翻译。
-6. 弹出一个小窗口显示中文翻译结果。
+6. 弹出一个小窗口显示翻译结果。
 7. 关闭小窗口后，可以继续使用其他软件。
 
 关闭命令行窗口即可退出程序。
@@ -112,6 +115,7 @@ python main.py
 
 - [x] Basic command-line translator
 - [x] Selected text translation with global hotkey
+- [x] Auto direction for English and Chinese
 - [ ] Style presets refinement
 - [ ] Web UI
 - [ ] Custom presets
