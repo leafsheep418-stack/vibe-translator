@@ -1,4 +1,9 @@
+# 本地密钥文件
 .env
+
+# Python 虚拟环境
 .venv/
+
+# Python 缓存文件
 __pycache__/
 *.pyc

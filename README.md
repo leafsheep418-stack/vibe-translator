@@ -35,6 +35,7 @@ vibe-translator/
   LICENSE
   .env.example
   .gitignore
+  .gitattributes
 ```
 
 ## 翻译风格

@@ -1,2 +1,9 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Keep common project text files with LF line endings on GitHub.
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.example text eol=lf
+*.gitignore text eol=lf
