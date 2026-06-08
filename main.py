@@ -8,15 +8,28 @@ import tkinter as tk
 STYLE_PROMPTS = {
     "discord": (
         "根据用户选中文字的主要语言决定翻译方向："
-        "如果主要是英文，就翻译成自然的中文，风格适合 Discord 日常聊天；"
-        "如果主要是中文，就翻译成自然的英文，风格适合 Discord 日常聊天。"
-        "语气要轻松、自然、像真人聊天。英文结果可以使用常见缩写，"
-        "例如 brb、btw、idk、tbh，但不要过度。中文结果也要像真实聊天。"
+        "如果主要是英文，就翻译成中文，但要保留 Discord / 网络聊天语气；"
+        "如果主要是中文，就翻译成适合 Discord 聊天的英文。"
+        "这个风格重点处理英文缩写、流行梗、网络黑话、吐槽、玩笑和阴阳怪气。"
+        "中译英时，如果可以自然使用缩写或网络表达，就优先使用缩写，"
+        "例如 good luck 可以写成 gl，thank you 可以写成 ty，"
+        "I don't know 可以写成 idk，to be honest 可以写成 tbh。"
+        "英译中时，不要逐字硬翻缩写和梗，要翻译出真实含义和语气。"
+        "例如 absolute cinema 不能翻译成“绝对电影院”，要按语境翻译成类似“太神了”“电影级名场面”。"
+        "不要把 Discord 风格写成正式英文或普通机器翻译。"
         "必须原样保留 emoji、链接、@用户名和代码片段。"
         "遇到网络缩写时按语境翻译，不要逐字翻译。"
         "遇到 lol/lmao/omg/fr/ngl/tbh/idk/rn 等词，要翻译出聊天语气。"
         "如果原文是吐槽、玩笑、阴阳怪气，要保留这种语气。"
         "中文要像真实年轻人聊天，不要像机器翻译。"
+    ),
+    "casual": (
+        "根据用户选中文字的主要语言决定翻译方向："
+        "如果主要是英文，就翻译成自然、清楚的中文；"
+        "如果主要是中文，就翻译成自然、清楚的英文。"
+        "风格适合日常交流，不要太正式，也不要过度使用网络缩写或流行梗。"
+        "表达要像普通朋友、同学或同事之间的自然沟通。"
+        "必须原样保留 emoji、链接、@用户名和代码片段。"
     ),
     "academic": (
         "根据用户选中文字的主要语言决定翻译方向："
@@ -114,15 +127,19 @@ def choose_style():
     """让用户选择一个内置翻译风格。"""
     print()
     print("请选择翻译风格：")
-    print("1. discord  - Discord 日常聊天")
-    print("2. academic - 论文 / 学术写作")
-    print("3. business - 商务邮件")
+    print("1. discord  - Discord 缩写 / 梗 / 网络聊天")
+    print("2. casual   - 日常交流")
+    print("3. academic - 论文 / 学术写作")
+    print("4. business - 商务邮件")
 
     style_map = {
         "1": "discord",
-        "2": "academic",
-        "3": "business",
+        "2": "casual",
+        "3": "academic",
+        "4": "business",
         "discord": "discord",
+        "casual": "casual",
+        "daily": "casual",
         "academic": "academic",
         "business": "business",
     }
@@ -133,7 +150,7 @@ def choose_style():
         if choice in style_map:
             return style_map[choice]
 
-        print("无效的风格。请输入 1、2、3，或者输入风格名称。")
+        print("无效的风格。请输入 1、2、3、4，或者输入风格名称。")
 
 
 def check_api_key(provider):
@@ -311,9 +328,9 @@ def main():
     print()
     print("后台翻译工具已启动。")
     print("使用方法：")
-    print("1. 在 Discord、浏览器、Word 或其他软件里选中一段英文。")
+    print("1. 在 Discord、浏览器、Word 或其他软件里选中一段英文或中文。")
     print(f"2. 按 {HOTKEY_TEXT}。")
-    print("3. 等待小窗口显示中文翻译结果。")
+    print("3. 等待小窗口显示翻译结果。")
     print()
     print("关闭这个命令行窗口即可退出程序。")
 

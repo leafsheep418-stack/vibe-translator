@@ -17,8 +17,9 @@ V0.1 是一个 Windows 桌面后台小工具：用户先运行程序，然后在
 - 弹出小窗口显示翻译结果
 - 支持 OpenAI / ChatGPT API
 - 支持 DeepSeek API
-- 内置三个风格：
-  - `discord`：适合 Discord 聊天，日常、自然、轻松
+- 内置四个风格：
+  - `discord`：适合 Discord 聊天，重点处理缩写、流行梗、网络黑话和吐槽语气
+  - `casual`：适合日常交流，自然、清楚、不太正式
   - `academic`：适合论文和学术写作，正式、严谨
   - `business`：适合商务邮件，礼貌、清晰、专业
 - 保留 emoji、链接、@用户名和代码片段
@@ -30,9 +31,21 @@ vibe-translator/
   main.py
   requirements.txt
   README.md
+  CHANGELOG.md
+  LICENSE
   .env.example
   .gitignore
 ```
+
+## 翻译风格
+
+`discord` 适合 Discord 这类网络聊天场景。它会尽量理解缩写、流行梗、网络黑话和吐槽语气。比如中文“祝大家好运”更适合翻成 `gl everyone`，而不是很正式的 `Good luck, everyone`。英文里的 `absolute cinema` 也不会被直译成“绝对电影院”，而会按语境翻译成更像网络表达的中文。
+
+`casual` 适合普通日常交流。它比 `discord` 更克制，不会刻意塞很多缩写或梗。
+
+`academic` 适合论文和学术写作。
+
+`business` 适合商务邮件。
 
 ## 安装
 
@@ -95,7 +108,7 @@ python main.py
 程序启动后会让你选择：
 
 1. API 服务商：OpenAI / ChatGPT 或 DeepSeek
-2. 翻译风格：`discord`、`academic` 或 `business`
+2. 翻译风格：`discord`、`casual`、`academic` 或 `business`
 
 然后程序会在后台等待快捷键。
 
@@ -116,6 +129,7 @@ python main.py
 - [x] Basic command-line translator
 - [x] Selected text translation with global hotkey
 - [x] Auto direction for English and Chinese
+- [x] Separate Discord and casual styles
 - [ ] Style presets refinement
 - [ ] Web UI
 - [ ] Custom presets
