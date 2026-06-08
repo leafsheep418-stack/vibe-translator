@@ -1,0 +1,7 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "style": "discord",
+  "save_api_key": false,
+  "api_keys": {}
+}

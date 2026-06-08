@@ -7,3 +7,11 @@
 # Python 缓存文件
 __pycache__/
 *.pyc
+
+# 本地用户配置
+config.json
+
+# PyInstaller 打包产物
+build/
+dist/
+*.spec

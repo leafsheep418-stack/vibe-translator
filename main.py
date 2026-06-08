@@ -1,3 +1,4 @@
+import json
 import os
 import queue
 import threading
@@ -73,6 +74,7 @@ HOTKEYS = {
     "<ctrl>+<alt>+t": "Ctrl + Alt + T",
 }
 HOTKEY_TEXT = "F8 或 Ctrl + Alt + T"
+CONFIG_FILE = "config.json"
 
 result_queue = queue.Queue()
 is_translating = False
@@ -90,6 +92,15 @@ STYLE_LABELS = {
 PROVIDER_LABELS = {
     "deepseek": "deepseek - DeepSeek",
     "openai": "openai - ChatGPT / OpenAI",
+}
+
+
+DEFAULT_CONFIG = {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "style": "discord",
+    "save_api_key": False,
+    "api_keys": {},
 }
 
 
@@ -137,6 +148,38 @@ def get_key_from_label(label):
             return key
 
     return label.split()[0].strip().lower()
+
+
+def load_config():
+    """读取本地配置文件；如果没有配置文件，就使用默认配置。"""
+    if not os.path.exists(CONFIG_FILE):
+        return DEFAULT_CONFIG.copy()
+
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+            loaded_config = json.load(file)
+    except (OSError, json.JSONDecodeError):
+        return DEFAULT_CONFIG.copy()
+
+    config = DEFAULT_CONFIG.copy()
+    config.update(loaded_config)
+
+    if config["provider"] not in PROVIDERS:
+        config["provider"] = DEFAULT_CONFIG["provider"]
+
+    if config["style"] not in STYLE_PROMPTS:
+        config["style"] = DEFAULT_CONFIG["style"]
+
+    if not isinstance(config.get("api_keys"), dict):
+        config["api_keys"] = {}
+
+    return config
+
+
+def save_config(config):
+    """保存本地配置文件。真实 API Key 只有在用户勾选时才保存。"""
+    with open(CONFIG_FILE, "w", encoding="utf-8") as file:
+        json.dump(config, file, ensure_ascii=False, indent=2)
 
 
 def translate_text(text, style, provider):
@@ -233,9 +276,11 @@ def handle_hotkey(style, provider):
 
 def show_popup(root, title, text):
     """弹出一个小窗口显示翻译结果。"""
+    import pyperclip
+
     window = tk.Toplevel(root)
     window.title(title)
-    window.geometry("520x260")
+    window.geometry("560x300")
     window.attributes("-topmost", True)
 
     text_box = tk.Text(window, wrap="word", font=("Microsoft YaHei UI", 11))
@@ -243,10 +288,67 @@ def show_popup(root, title, text):
     text_box.config(state="disabled")
     text_box.pack(fill="both", expand=True, padx=12, pady=(12, 8))
 
-    close_button = tk.Button(window, text="关闭", command=window.destroy)
-    close_button.pack(pady=(0, 12))
+    button_frame = ttk.Frame(window)
+    button_frame.pack(fill="x", padx=12, pady=(0, 12))
+
+    copy_status = tk.StringVar(value="")
+    copy_status_label = ttk.Label(button_frame, textvariable=copy_status)
+    copy_status_label.pack(side="left")
+
+    def copy_result():
+        pyperclip.copy(text)
+        copy_status.set("已复制")
+
+    copy_button = ttk.Button(button_frame, text="复制结果", command=copy_result)
+    copy_button.pack(side="right")
+
+    close_button = ttk.Button(button_frame, text="关闭", command=window.destroy)
+    close_button.pack(side="right", padx=(0, 8))
 
     window.focus_force()
+
+
+def show_help():
+    """显示给新手看的使用方法说明。"""
+    help_window = tk.Toplevel()
+    help_window.title("使用方法")
+    help_window.geometry("620x520")
+    help_window.minsize(520, 420)
+
+    text_box = tk.Text(help_window, wrap="word", font=("Microsoft YaHei UI", 10))
+    text_box.pack(fill="both", expand=True, padx=12, pady=(12, 8))
+
+    help_text = (
+        "Vibe Translator 使用方法\n\n"
+        "1. 选择 API 服务商：DeepSeek 或 OpenAI。\n"
+        "2. 输入对应平台的 API Key。\n"
+        "3. 选择翻译风格。\n"
+        "4. 可以先点击“测试 API”，确认 API Key 和网络可用。\n"
+        "5. 点击“开启快捷翻译”。\n"
+        f"6. 在 Discord、浏览器、Word 等软件里选中文字，按 {HOTKEY_TEXT}。\n"
+        "7. 程序会弹出翻译结果窗口。\n\n"
+        "API Key 是什么？\n\n"
+        "API Key 可以理解成 AI 平台给你的使用密码。"
+        "本软件不提供免费 AI 额度，你需要使用自己的 OpenAI 或 DeepSeek API Key。"
+        "不要把 API Key 发给别人，也不要上传到 GitHub。\n\n"
+        "获取 API Key / 充值入口：\n\n"
+        "OpenAI API Key:\n"
+        "https://platform.openai.com/api-keys\n\n"
+        "OpenAI Billing:\n"
+        "https://platform.openai.com/settings/organization/billing/overview\n\n"
+        "DeepSeek API Key:\n"
+        "https://platform.deepseek.com/api_keys\n\n"
+        "DeepSeek API Pricing:\n"
+        "https://api-docs.deepseek.com/quick_start/pricing-details-usd/\n\n"
+        "提醒：ChatGPT 会员和 OpenAI API 计费通常是分开的。"
+        "如果你买了 ChatGPT Plus，也不代表 API 一定有余额。"
+    )
+
+    text_box.insert("1.0", help_text)
+    text_box.config(state="disabled")
+
+    close_button = ttk.Button(help_window, text="关闭", command=help_window.destroy)
+    close_button.pack(pady=(0, 12))
 
 
 def check_result_queue(root):
@@ -290,8 +392,14 @@ def build_settings_window(root):
     """创建设置窗口，让用户选择服务商、填写 API Key 和选择风格。"""
     global hotkey_listener
 
-    root.title("Vibe Translator V0.2")
-    root.geometry("520x500")
+    config = load_config()
+    saved_provider = config["provider"]
+    saved_style = config["style"]
+    saved_model = config.get("model") or PROVIDERS[saved_provider]["default_model"]
+    saved_api_key = config.get("api_keys", {}).get(saved_provider, "")
+
+    root.title("Vibe Translator V0.3")
+    root.geometry("560x560")
     root.minsize(460, 460)
     root.resizable(True, True)
 
@@ -307,14 +415,14 @@ def build_settings_window(root):
 
     subtitle_label = ttk.Label(
         main_frame,
-        text=f"选择配置后，按 {HOTKEY_TEXT} 翻译当前选中文字。",
+        text=f"选中文字后，按 {HOTKEY_TEXT} 快速翻译。",
     )
     subtitle_label.pack(anchor="w", pady=(4, 16))
 
     provider_label = ttk.Label(main_frame, text="API 服务商")
     provider_label.pack(anchor="w")
 
-    provider_var = tk.StringVar(value=PROVIDER_LABELS["deepseek"])
+    provider_var = tk.StringVar(value=PROVIDER_LABELS[saved_provider])
     provider_box = ttk.Combobox(
         main_frame,
         textvariable=provider_var,
@@ -326,21 +434,31 @@ def build_settings_window(root):
     api_key_label = ttk.Label(main_frame, text="API Key")
     api_key_label.pack(anchor="w")
 
-    api_key_var = tk.StringVar(value=os.getenv("DEEPSEEK_API_KEY", ""))
+    api_key_var = tk.StringVar(
+        value=saved_api_key or os.getenv(PROVIDERS[saved_provider]["api_key_env"], "")
+    )
     api_key_entry = ttk.Entry(main_frame, textvariable=api_key_var, show="*")
     api_key_entry.pack(fill="x", pady=(4, 10))
+
+    save_api_key_var = tk.BooleanVar(value=bool(config.get("save_api_key")))
+    save_api_key_check = ttk.Checkbutton(
+        main_frame,
+        text="记住 API Key（只保存在本机 config.json）",
+        variable=save_api_key_var,
+    )
+    save_api_key_check.pack(anchor="w", pady=(0, 10))
 
     model_label = ttk.Label(main_frame, text="模型（可不改）")
     model_label.pack(anchor="w")
 
-    model_var = tk.StringVar(value=PROVIDERS["deepseek"]["default_model"])
+    model_var = tk.StringVar(value=saved_model)
     model_entry = ttk.Entry(main_frame, textvariable=model_var)
     model_entry.pack(fill="x", pady=(4, 10))
 
     style_label = ttk.Label(main_frame, text="翻译风格")
     style_label.pack(anchor="w")
 
-    style_var = tk.StringVar(value=STYLE_LABELS["discord"])
+    style_var = tk.StringVar(value=STYLE_LABELS[saved_style])
     style_box = ttk.Combobox(
         main_frame,
         textvariable=style_var,
@@ -349,27 +467,49 @@ def build_settings_window(root):
     )
     style_box.pack(fill="x", pady=(4, 12))
 
-    status_var = tk.StringVar(value="还没有开始监听。")
+    status_var = tk.StringVar(value="还没有开启快捷翻译。")
     status_label = ttk.Label(main_frame, textvariable=status_var)
     status_label.pack(anchor="w", pady=(0, 12))
 
     button_frame = ttk.Frame(main_frame)
-    button_frame.pack(fill="x")
+    button_frame.pack(fill="x", pady=(4, 0))
 
-    start_button = ttk.Button(button_frame, text="开始监听")
-    start_button.pack(side="left")
+    start_button = ttk.Button(button_frame, text="开启快捷翻译")
+    start_button.pack(fill="x", ipady=6)
 
-    test_button = ttk.Button(button_frame, text="测试 API")
-    test_button.pack(side="left", padx=(8, 0))
+    second_button_frame = ttk.Frame(main_frame)
+    second_button_frame.pack(fill="x", pady=(10, 0))
 
-    hide_button = ttk.Button(button_frame, text="最小化", command=root.iconify)
+    test_button = ttk.Button(second_button_frame, text="测试 API")
+    test_button.pack(side="left")
+
+    help_button = ttk.Button(second_button_frame, text="使用方法", command=show_help)
+    help_button.pack(side="left", padx=(8, 0))
+
+    hide_button = ttk.Button(second_button_frame, text="最小化", command=root.iconify)
     hide_button.pack(side="left", padx=(8, 0))
 
     def refresh_provider_fields(event=None):
         provider = get_key_from_label(provider_var.get())
         provider_info = PROVIDERS[provider]
-        api_key_var.set(os.getenv(provider_info["api_key_env"], ""))
+        config_now = load_config()
+        saved_key = config_now.get("api_keys", {}).get(provider, "")
+        api_key_var.set(saved_key or os.getenv(provider_info["api_key_env"], ""))
         model_var.set(os.getenv(provider_info["model_env"], provider_info["default_model"]))
+
+    def collect_config(provider, style, api_key, model):
+        config_to_save = {
+            "provider": provider,
+            "model": model,
+            "style": style,
+            "save_api_key": bool(save_api_key_var.get()),
+            "api_keys": {},
+        }
+
+        if save_api_key_var.get():
+            config_to_save["api_keys"][provider] = api_key
+
+        return config_to_save
 
     def close_app():
         global hotkey_listener
@@ -380,7 +520,7 @@ def build_settings_window(root):
 
         root.destroy()
 
-    quit_button = ttk.Button(button_frame, text="退出", command=close_app)
+    quit_button = ttk.Button(second_button_frame, text="退出", command=close_app)
     quit_button.pack(side="right")
 
     def start_listening():
@@ -406,19 +546,21 @@ def build_settings_window(root):
 
         os.environ[provider_info["api_key_env"]] = api_key
         os.environ[provider_info["model_env"]] = model
+        save_config(collect_config(provider, style, api_key, model))
 
         hotkey_listener = start_hotkey_listener(style, provider)
 
         provider_box.config(state="disabled")
         api_key_entry.config(state="disabled")
+        save_api_key_check.config(state="disabled")
         model_entry.config(state="disabled")
         style_box.config(state="disabled")
         start_button.config(state="disabled")
 
-        status_var.set(f"正在后台监听 {HOTKEY_TEXT}。当前风格：{style}")
+        status_var.set(f"快捷翻译已开启。当前风格：{style}")
         messagebox.showinfo(
-            "已启动",
-            f"后台翻译已启动。\n\n选中英文或中文后，按 {HOTKEY_TEXT} 显示翻译结果。",
+            "已开启",
+            f"快捷翻译已开启。\n\n选中英文或中文后，按 {HOTKEY_TEXT} 显示翻译结果。",
         )
 
     def test_api():
@@ -438,6 +580,7 @@ def build_settings_window(root):
 
         os.environ[provider_info["api_key_env"]] = api_key
         os.environ[provider_info["model_env"]] = model
+        save_config(collect_config(provider, style, api_key, model))
 
         test_button.config(state="disabled")
         status_var.set("正在测试 API，请稍等。")
@@ -446,7 +589,7 @@ def build_settings_window(root):
             try:
                 result = translate_text("祝大家好运", style, provider)
                 result_queue.put(("测试结果", result))
-                root.after(0, status_var.set, "API 测试完成。可以点击“开始监听”。")
+                root.after(0, status_var.set, "API 测试完成。可以点击“开启快捷翻译”。")
             except Exception as error:
                 result_queue.put(("测试失败", f"请检查 API Key、网络连接和账号状态。\n\n错误信息：{error}"))
                 root.after(0, status_var.set, "API 测试失败。")
