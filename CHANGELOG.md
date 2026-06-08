@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- 将 DeepSeek 默认模型从 `deepseek-chat` 更新为 `deepseek-v4-flash`。
 - 新增 GUI 设置窗口，可以在窗口里选择服务商、输入 API Key、选择模型和翻译风格。
 - 新增“测试 API”按钮，方便确认 API Key 和网络是否可用。
 - 新增备用快捷键 `Ctrl + Alt + T`，避免部分键盘的 `F8` 不易触发。

@@ -102,7 +102,7 @@ $env:DEEPSEEK_API_KEY="your_deepseek_api_key_here"
 可选：指定 DeepSeek 模型：
 
 ```powershell
-$env:DEEPSEEK_MODEL="deepseek-chat"
+$env:DEEPSEEK_MODEL="deepseek-v4-flash"
 ```
 
 `.env.example` 只放示例，不要写真实 API Key。如果之后你创建本地 `.env` 文件，也不要上传到 GitHub。

@@ -62,7 +62,7 @@ PROVIDERS = {
         "name": "DeepSeek",
         "api_key_env": "DEEPSEEK_API_KEY",
         "model_env": "DEEPSEEK_MODEL",
-        "default_model": "deepseek-chat",
+        "default_model": "deepseek-v4-flash",
         "base_url": "https://api.deepseek.com",
     },
 }
